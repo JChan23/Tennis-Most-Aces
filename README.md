@@ -16,7 +16,7 @@ Most of the code was written by me, with some assistance from Claude when I got 
 
 ## Input
 
-One workbook, two sheets.
+One excel workbookwith two sheets, formatted as below.
 
 `ace_ladders`
 
