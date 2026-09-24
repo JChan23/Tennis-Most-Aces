@@ -19,17 +19,17 @@ PooledMargin = 1.033
 # Pooled bookmaker margin, used as "c" when a ladder cannot identify its own, where "c" is the "level" of the curve
 # Median fitted c across 28 ace ladders = 1.033 (3.3%)
 
-MIN_SPAN = 0.6
-MIN_RUNGS = 3
+MinSpan = 0.6
+MinRungs = 3
 # Minimum "span" of implied probabilities before we trust a ladder to fit its own margin
 # Span = max(1/odds) - min(1/odds) across the usable rungs (i.e. how much of the distribution the prices actually cover)
 # Rungs bunched together all probe the same part of the curve (e.g. rungs of low ace counts only)
 
-POINTS = {'ATP': (-8.6, 6.484), 'WTA': (-3.7, 6.410)}
-# points = a + b*games
+Points = {'ATP': (-8.6, 6.484), 'WTA': (-3.7, 6.410)}
+# Points = a + b*games
 # Straight line fitted by least squares on ATP and WTA hard-court matches
 
-DEFAULT_SD = {'ATP': 9.0, 'WTA': 5.5}
+DefaultSD = {'ATP': 9.0, 'WTA': 5.5}
 # Default SD of number of games
 # Used only when the two games lines are priced so close together that the spread can't be read from them.
 
@@ -43,7 +43,7 @@ def fit_ladder(thresholds, odds): # Both are arrays
 
     implied = [1.0 / o for _, o in pts]
     span = max(implied) - min(implied)
-    free_c = len(pts) >= MIN_RUNGS and span >= MIN_SPAN # Boolean
+    free_c = len(pts) >= MinRungs and span >= MinSpan # Boolean
     N = np.array([p[0] for p in pts], float) # Array of the lines (n+ aces)
     P = np.array([1.0 / p[1] for p in pts]) # Array of the implied probabilities
     W = np.clip(P * (1 - P), 1e-3, None) ** 0.5 # Array of standard deviations
@@ -79,10 +79,10 @@ def games_median_sd(lines): # Turns two betting lines into a match-length distri
     if len(lines) >= 2 and p[0] > p[1]:
         med = lines[0][0] + (p[0] - 0.5) / (p[0] - p[1]) # find median via interpolation
         sd = norm.pdf(0) / (p[0] - p[1])
-        if not 2.0 <= sd <= 1.6 * DEFAULT_SD[tour]: # when lines are priced closely sd will be too large
-            sd = DEFAULT_SD[tour]
+        if not 2.0 <= sd <= 1.6 * DefaultSD[tour]: # when lines are priced closely sd will be too large
+            sd = DefaultSD[tour]
     else:
-        med, sd = lines[0][0], DEFAULT_SD[tour]
+        med, sd = lines[0][0], DefaultSD[tour]
     return tour, float(med), float(sd)
 
 
@@ -124,9 +124,9 @@ for match, g in lad.groupby('match', sort=False):
 
     a, b = players
     mu_a, mu_b = fits[a][0], fits[b][0]
-    a0, b0 = POINTS[tour]
+    a0, b0 = Points[tour]
     rows.append({'match': match, 'tour': tour, 'games_median': round(med, 1),
-                 'exp_points': round(a0 + b0 * med),
+                 'exp_Points': round(a0 + b0 * med),
                  'player_a': a, 'exp_aces_a': round(mu_a, 2),
                  'player_b': b, 'exp_aces_b': round(mu_b, 2),
                  'P(A>B)': round(p_more(mu_a, mu_b, med, sd), 3),
