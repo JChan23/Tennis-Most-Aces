@@ -13,9 +13,7 @@ pip install -r requirements.txt
 python ace_model.py example_input.xlsx
 ```
 
-New to this? [**METHOD.md**](METHOD.md) explains the whole approach in plain
-English with no stats background assumed. The section below is the technical
-version.
+Most of the code was written by me, with some assistance from Claude when I got stuck
 
 ## Input
 
