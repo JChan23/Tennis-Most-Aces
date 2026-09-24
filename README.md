@@ -4,8 +4,8 @@ Forecasts **P(player A hits more aces than player B)** from bookmaker ace ladder
 and the total-games market.
 
 Built for a live tennis prediction-market competition during the 2026 US Open,
-where it was the best-performing of eight markets modelled. Market made up **35.6% of my total
-score**. Final rank 13 globally.
+where it was the best-performing of eight markets modelled. Market made up 
+**35.6% of my total score**. Final rank 13 globally.
 
 ```bash
 pip install -r requirements.txt
