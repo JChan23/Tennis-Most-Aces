@@ -39,7 +39,7 @@ Lines and odds are to be taken from a bookmaker. I used Pinnacle and Bet365.
 
 ### 1. Recover each player's ace distribution from a one-sided ladder
 
-Bookmakers quote "N+ aces" with no under side, so you cannot de-vig by
+Bookmakers quote "N+ aces" with no under side, so we cannot de-vig by
 rescaling to sum to 1. The margin has to be estimated jointly with the
 distribution:
 
@@ -56,10 +56,9 @@ rungs. Ratios are margin-free:
 ```
 
 So the margin never needs to be known. We fit the *shape* of the ladder and let
-the *level* float away; `c` is discarded and never enters `P(A>B)`. Verified:
-fitting ratios directly gives μ = 21.50 against 21.48 from the free-`c` fit.
+the *level* float away; `c` is discarded and never enters `P(A>B)`. 
 
-This matters because **margins differ between ladders** — fitted `c` ranged
+This matters because **margins differ between ladders**. Fitted `c` ranged
 0.99 to 1.20 across the sample. Forcing a common value biases whichever
 player's ladder is priced differently: on the worked example it shifted one
 player's mean by 0.54 aces and the final answer by 3 points.
@@ -69,12 +68,12 @@ near-certain rungs (1.001, pure rounding) don't dominate. Quotes at 26.00 are a
 price ceiling rather than a fair price and are dropped.
 
 Negative binomial rather than Poisson because ace counts are heavily
-over-dispersed — fitted `k` is typically 3.5–5, so the `μ²/k` term dominates.
+over-dispersed. Fitted `k` is typically 3.5–5, so the `μ²/k` term dominates.
 
-### When can a ladder fit its own margin?
+### When can a ladder fit its own margin (c)?
 
-Not simply "when there are three or more prices". What matters is the **span**
-— how much of the distribution the rungs actually cover:
+Not simply "when there are three or more prices". What matters is the **span** 
+(how much of the distribution the rungs actually cover):
 
 ```
 span = max(1/odds) − min(1/odds)   across the usable rungs
@@ -94,7 +93,7 @@ Tested exhaustively on every subset of a 9-rung ladder (reference μ = 21.48):
 | 5 | < 0.6 | **1.14** | 0.11 |
 | 5 | ≥ 0.6 | **0.24** | 0.51 |
 
-Three well-spread rungs beat five bunched ones by five to one — and note the
+Three well-spread rungs beat five bunched ones by five to one. Note the
 reversal, where a narrow span makes the *imposed* margin better, because there
 isn't enough information to estimate `c` and letting it float only adds noise.
 
@@ -108,16 +107,12 @@ Rung count is a weak proxy for the same thing:
 | **6** | **0.19** | **0.50** | **90%** |
 | 7 | 0.15 | 0.31 | 97% |
 
-At three rungs the free fit has the better median but a worse *tail* — usually
+At three rungs the free fit has the better median but a worse *tail*. Usually
 fine, occasionally badly wrong. Six is the first count where it wins on both,
 and where every subset spans widely enough anyway.
 
 **The rule in the code:** fit `c` freely when there are ≥3 rungs *and* span
 ≥ 0.6; otherwise impose `c = 1.033`.
-
-A caution about diagnostics: the bunched subsets fit to machine precision
-(SSE ~1e−15) while returning a mean off by a factor of two. **A low residual
-tells you nothing here** — three points through three unknowns always fits.
 
 ### 2. Read match length from the total-games market
 
@@ -181,11 +176,11 @@ convolving at `k = μ/(φ−1)`, and averaging.
 
 ## The dispersion constant
 
-`PHI = 1.96` is the one empirically fitted input, and getting it wrong was the
-model's biggest single error.
+`phi = 1.96` is the one empirically fitted input, and getting it wrong was the
+model's biggest single error during development.
 
 Given match length, ace counts are **not** Poisson. Measured across 192 ATP
-players with 25+ hard-court matches — expected aces = career rate × that
+players with 25+ hard-court matches. Expected aces = career rate × that
 match's actual service points, so length variation is removed entirely:
 
 ```
@@ -197,22 +192,18 @@ match's actual service points, so length variation is removed entirely:
 Ace rate genuinely drifts within a match: balls change every nine games,
 servers go bigger at 40-0 and safer on break point, wind and fatigue shift.
 
-The conditional dispersion follows directly — `Var(a|N) = φ·μ`, so
+The conditional dispersion follows directly: `Var(a|N) = φ·μ`, so
 `k = μ/(φ − 1)`. Deriving it instead as a residual (ladder variance minus
 length variance) returned a degenerate zero-dispersion answer in 35 of 45
 realistic parameter combinations, producing near-certain probabilities with no
 justification.
-
-*Caveat:* φ varies by player, and opponent-adjusting the expected count pushes
-the median to 2.77 rather than down, so the crude opponent adjustment adds
-noise. 1.96 comes from the better-behaved specification and is likely a floor.
 
 ## Ties settle NO
 
 `P(A>B) + P(B>A) = 1 − P(tie)`, and the observed ace tie rate is **6.7%**. Two
 evenly-matched servers sit near 0.47 each, not 0.50.
 
-Never compute the reverse direction as `1 − P(A>B)` — that equals
+Never compute the reverse direction as `1 − P(A>B)`. That equals
 `P(B>A) + P(tie)` and inflates it by the whole tie mass.
 
 ## Output
@@ -222,23 +213,8 @@ Never compute the reverse direction as `1 − P(A>B)` — that equals
   A. Bublik vs J. Wolf  ATP          38.5         241    Bublik       21.46      Wolf       13.28   0.820   0.147   0.033
 ```
 
-Also written to `ace_predictions.csv`.
-
 ## What this model does not do
 
 It reads the bookmaker's view more carefully than the crowd does; it does not
-beat the bookmaker. A coherence test comparing the ladder's implied length
-dispersion against the games market suggested 15–29% edges on low ace
-thresholds — but measuring φ showed those were entirely an artefact of the
-Poisson assumption. Checking all 208 ladders for monotonicity violations found
-zero.
-
-The margin itself is only weakly identifiable from one-sided prices — you
-cannot separate "the book thinks 0.500 and charges 5%" from "the book thinks
-0.525 and charges nothing". Two independent routes agree, though: the median
-fitted `c` across 28 ladders is **1.033**, and the overround on the same book's
-two-way total-games market is **3.8%**. That is where `POOLED_MARGIN = 1.033`
-comes from.
-
-The competition scores against crowd consensus, not against the book. That is
+beat the bookmaker. The competition was scored against crowd consensus, not against the book. That is
 where the edge came from.
