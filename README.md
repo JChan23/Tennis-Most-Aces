@@ -16,7 +16,7 @@ Most of the code was written by me, with some assistance from Claude when I got 
 
 ## Input
 
-One excel workbookwith two sheets, formatted as below.
+One excel workbook with two sheets, formatted as below.
 
 `ace_ladders`
 
@@ -32,6 +32,8 @@ One excel workbookwith two sheets, formatted as below.
 |---|---|---|---|
 | A. Bublik vs J. Wolf | 38.5 | 1.87 | 1.95 |
 | A. Bublik vs J. Wolf | 39.5 | 2.05 | 1.80 |
+
+Lines and odds are to be taken from a bookmaker. I used Pinnacle and Bet365.
 
 ## Method
 
